@@ -1,6 +1,7 @@
 package Snake.src;
 
 import javax.swing.*;
+
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -10,14 +11,14 @@ import java.awt.event.KeyEvent;
 
 public class TelaInicial extends JPanel implements ActionListener { 
 
-    private static final int Largura= 1300;
+    private static final int Largura= 900;
     private static final int Altura= 900;
     private static final int TamanhoBloco= 50;
     private static final int Unidades= Largura * Altura / (TamanhoBloco*TamanhoBloco);
     private int CorpoCobra= 6;
     private final int[] eixoX= new int[Unidades];
     private final int[] eixoY= new int[Unidades];
-    private static final String NomeFonte = "Segoe UI";
+    private static final String NomeFonte = "Futura";
     public static char direcao= 'B'; // D = Direita, E = Esquerda, B = Baixo, C = Cima
     private int blocoX;
     private int blocoY;
@@ -35,6 +36,14 @@ public class TelaInicial extends JPanel implements ActionListener {
         iniciarJogo();
     }
     public void iniciarJogo(){
+        // A cobra começa no centro
+        eixoX[0] = (Largura / 2 / TamanhoBloco) * TamanhoBloco;
+        eixoY[0] = (Altura / 2 / TamanhoBloco) * TamanhoBloco;
+        // Corpo começe atrás da cabeça
+        for (int i = 1; i < CorpoCobra; i++) {
+            eixoX[i] = eixoX[0] - i * TamanhoBloco;
+            eixoY[i] = eixoY[0];
+        }
         criarBloco();
         rodando = true;
         timer = new Timer(Intervalo, this);
@@ -49,19 +58,41 @@ public class TelaInicial extends JPanel implements ActionListener {
 
     public void fazerTela(Graphics g){ // Criar a tela do jogo
         if (rodando){
+            ImageIcon imagemback = new ImageIcon("Snake/src/resources/background.png");
+            Image back = imagemback.getImage();
+            g.drawImage(back, 0,0, Largura, Altura, this);
             ImageIcon imagemMaca = new ImageIcon("Snake/src/resources/maca.png");
             Image maca = imagemMaca.getImage();
+            ImageIcon imagemCorpo = new ImageIcon("Snake/src/resources/corpoCobra.png");
+            Image corpo = imagemCorpo.getImage();
+            ImageIcon imagemCabecaC = new ImageIcon("Snake/src/resources/cabecaC.png");
+            Image cabecaC = imagemCabecaC.getImage();
+            ImageIcon imagemCabecaB = new ImageIcon("Snake/src/resources/cabecaB.png");
+            Image cabecaB = imagemCabecaB.getImage();
+            ImageIcon imagemCabecaD = new ImageIcon("Snake/src/resources/cabecaD.png");
+            Image cabecaD = imagemCabecaD.getImage();
+            ImageIcon imagemCabecaE = new ImageIcon("Snake/src/resources/cabecaE.png");
+            Image cabecaE = imagemCabecaE.getImage();
+            Image cabecaAtual;
+            switch (direcao) {
+                case 'C': cabecaAtual = cabecaC; break;
+                case 'B': cabecaAtual = cabecaB; break;
+                case 'E': cabecaAtual = cabecaE; break;
+                case 'D': cabecaAtual = cabecaD; break;
+                default: cabecaAtual = cabecaD; break;
+            }
             g.drawImage(maca, blocoX, blocoY, TamanhoBloco, TamanhoBloco, this);
-            for(int i =0; i< CorpoCobra; i++){
+            for(int i =0; i< CorpoCobra; i++){ //Cria a cobra
                 if (i==0) {
-                    g.setColor(new Color(0,180,0));
+                    //g.setColor(new Color(0,180,0));
+                    g.drawImage(cabecaAtual, eixoX[i], eixoY[i], TamanhoBloco, TamanhoBloco, this);
+                    
                 } else {
-                    g.setColor(new Color(0,100,0));
+                    g.drawImage(corpo, eixoX[i], eixoY[i], TamanhoBloco, TamanhoBloco, this);
                 }
-                g.fillRoundRect(eixoX[i], eixoY[i], TamanhoBloco, TamanhoBloco, 12, 12); //Cria a cobra
                 g.setColor(Color.CYAN);
                 g.setFont(new Font(NomeFonte, Font.BOLD, 36));
-                g.drawString("Pontos: "+ blocosComidos, 50, 40);
+                g.drawString("Pontos: "+ blocosComidos, 50, 35);
             }
         } else {
             fimJogo(g);
@@ -69,22 +100,24 @@ public class TelaInicial extends JPanel implements ActionListener {
     }
 
     public void criarBloco(){ // Criar um bloco em uma posição aleatória do mapa
-        blocoX=random.nextInt(Largura/TamanhoBloco)* TamanhoBloco;
-        blocoY=random.nextInt(Altura/TamanhoBloco)* TamanhoBloco;
+        int margem= 50; // Para nao criar nas bordas da janela
+
+        blocoX=margem + random.nextInt((Largura-2*margem)/TamanhoBloco)* TamanhoBloco;
+        blocoY=margem + random.nextInt((Altura-2*margem)/TamanhoBloco)* TamanhoBloco;
     }
 
     public void fimJogo(Graphics g){ // A cobra morreu
-        ImageIcon imagemBack = new ImageIcon("Snake/src/resources/background.jpg");
+        ImageIcon imagemBack = new ImageIcon("Snake/src/resources/background1.png");
         Image background = imagemBack.getImage();
         g.drawImage(background, 0, 0, Largura, Altura, this);
         g.setColor(Color.CYAN);
         g.setFont(new Font(NomeFonte, Font.BOLD, 36));
         FontMetrics fontePontos = getFontMetrics(g.getFont());
-        g.drawString("Pontos: "+ blocosComidos, (Largura - fontePontos.stringWidth("Fim de Jogo"))/2, Altura/2);
+        g.drawString("Pontos: "+ blocosComidos, (Largura - fontePontos.stringWidth("Pontos: "+ blocosComidos))/2, Altura/2);
         g.setColor(Color.red);
         g.setFont(new Font(NomeFonte, Font.BOLD, 75));
         FontMetrics fonteFim = getFontMetrics(g.getFont());
-        g.drawString("Fim de Jogo", (Largura - fonteFim.stringWidth("Fim de Jogo"))/2, g.getFont().getSize());
+        g.drawString("Fim de Jogo", (Largura - fonteFim.stringWidth("Fim de Jogo"))/2, Altura/2-100);
     }
     public void actionPerformed(ActionEvent e ){
         if (rodando) {
@@ -133,11 +166,11 @@ public class TelaInicial extends JPanel implements ActionListener {
             }
         }
         // Verificar se a cabeça bateu nas paredes
-        if (eixoX[0]<0||eixoX[0]> (Largura-50)) {
+        if (eixoX[0]<50||eixoX[0]> (Largura-100)) {
             rodando=false;
         }
         // Verificar se a cabeça bateu no chão ou no teto
-        if (eixoY[0]<0||eixoY[0]> (Altura-50)){
+        if (eixoY[0]<50||eixoY[0]> (Altura-100)){
             rodando=false;
         }
         // Para o timer quando morrer
